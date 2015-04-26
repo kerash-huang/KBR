@@ -5,14 +5,14 @@ namespace db;
  * @author  Kerash <kerashman@gmail.com>
  * @date    2015/04/26
  *
- * DBSource Definition
+ * $DBSource definition struct
  * array(
- *     "key" => array("host","dbname","user","password")
- *     "key2"=> array("host","dbname","user","password")
+ *     "key" => array("host","dbname","user","password",["dbtype"])
+ *     "key2"=> array("host","dbname","user","password",["dbtype"])
  * );
- *
  * 
  */
+
 class Database {
     private static $DBSource = null;
     private static $ActiveConnection = array();
@@ -26,30 +26,27 @@ class Database {
         if(self::$instance == null) {
             try {
                 self::$instance = new Database;
-            } catch(Exception $e) {
-                throw new Exception($e->getMessage());
+            } catch(\Exception $e) {
+                throw new \Exception($e->getMessage());
             }
         }
         return self::$instance;
     }
 
     public function getConnection($source) {
-        if(!isset($DBSource)) {
-            throw new Exception("Define the database connect information first. (use Database::loadConnection([Array])");
+        if(!isset(self::$DBSource)) {
+            throw new \Exception("Define the database connect information first. (use Database::loadConnection([Array])");
         }
-        $SourceDefine = $DBSource[$source];
-        if($SourceDefine) {
+        $SourceDefine = self::$DBSource[$source];
+        if(!$SourceDefine) {
             return null;
         }
-        $ActiveKey = $SourceDefine["host"].$SourceDefine["user"];
-        if( !isset($ActiveConnection[$ActiveKey] )) {
-            
-        }
-        return $ActiveConnection[$source];
-    }
 
-    abstract public function select($Column, $Table, $Condition, $Order, $Limit, $Connect, $isQueryShow);
-    abstract public function insert($Table, $Column, $Data, $Connect, $isQueryShow);
-    abstract public function update($Table, $Column, $Condition, $Connect, $isQueryShow);
-    abstract public function delete($Table, $Condition, $Connect, $isQueryShow);
+        $ActiveKey = str_replace(".","_",$SourceDefine["host"]).$SourceDefine["user"];
+        if( !isset($ActiveConnection[$ActiveKey] )) {
+            $myPdo = new MyPdo($SourceDefine["host"], $SourceDefine["dbname"], $SourceDefine["user"], $SourceDefine["password"],$SourceDefine["dbtype"]);
+            $ActiveConnection[$ActiveKey] = $myPdo->handle;
+        }
+        return $ActiveConnection[$ActiveKey];
+    }
 }
