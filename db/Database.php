@@ -1,9 +1,12 @@
 <?php
 namespace db;
 /**
- * Database Conenction
- * @author  Kerash <kerashman@gmail.com>
- * @date    2015/04/26
+ * @descript  Database Conenction
+ * @author    Kerash <kerashman@gmail.com>
+ * @date      2015/04/26
+ * @last      2015/04/29
+ * @version   v1.0b
+ * @history   
  *
  * $DBSource definition struct
  * array(
@@ -45,7 +48,7 @@ class Database {
         $ActiveKey = str_replace(".","_",$SourceDefine["host"]).$SourceDefine["user"];
         if( !isset($ActiveConnection[$ActiveKey] )) {
             $myPdo = new MyPdo($SourceDefine["host"], $SourceDefine["dbname"], $SourceDefine["user"], $SourceDefine["password"],$SourceDefine["dbtype"]);
-            $ActiveConnection[$ActiveKey] = $myPdo->handle;
+            $ActiveConnection[$ActiveKey] = $myPdo;
         }
         return $ActiveConnection[$ActiveKey];
     }

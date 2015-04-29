@@ -1,7 +1,7 @@
 <?php
 namespace db;
 class MyPdo extends Database {
-    public $handle;
+    public  $handle;
     private $pdo_fetch_type = \PDO::FETCH_ASSOC;
 
     function __construct($host, $database, $user, $password, $dbtype = "mysql") {
@@ -13,7 +13,7 @@ class MyPdo extends Database {
         }
     }
 
-    public function select($Column, $Table, $Condition, $Order, $Limit, $Connect, $isQueryShow){
+    public function select($Column, $Table, $Condition = "", $Order = "", $Limit ="" , $Connect = null, $isQueryShow = false){
 
     }
     public function insert($Table, $Column, $Data, $Connect, $isQueryShow){
@@ -25,14 +25,18 @@ class MyPdo extends Database {
     public function delete($Table, $Condition, $Connect, $isQueryShow){
 
     }
-    public function query($Query, $Connect, $isQueryShow) {
+    public function query($Query, $Connect = null, $isQueryShow = false) {
         try{
+            $Connector = $Connect ? $Connect : $this->handle;
             $Query = trim($Query);
-            $stmt = $this->handle->prepare($Query);
+            if($isQueryShow) {
+
+            }
+            $stmt  = $Connector->prepare($Query);
             if($stmt) {
                 $ExecuteReturn = $stmt->execute();
                 if($ExecuteReturn) {
-                    if(preg_match("/^(select|show)/i",trim($Query)))  {
+                    if(preg_match("/^(select|show)/i",$Query))  {
                         $Result = $stmt->fetchAll( $this->pdo_fetch_type );
                         if($Result) {
                             return $Result;
