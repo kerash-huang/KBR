@@ -5,9 +5,7 @@ namespace db;
  * @author    Kerash <kerashman@gmail.com>
  * @date      2015/04/26
  * @last      2015/05/02
- * @version   v1.0.1b
- * @history   
- *     v1.0.1b  build select function
+ * @version   v1.0.2b
  *     
  * $DBSource definition struct
  * array(
@@ -27,8 +25,14 @@ class Database extends DBException {
     private static $ActiveConnection = array();
     private static $instance;
 
-    private $ErrorLevel = ERROR_FILE;
-    private $ErrorFile  = "Database.Error.Logfile.log";
+    private static $ErrorLevel = ERROR_FILE;
+    private static $ErrorLogDir = "./C_DB_LOG/";
+    private static $ErrorFile  = "Database.Error.Logfile.log";
+
+
+    function __construct() {
+
+    }
 
     public static function loadConnection( $source ) {
         self::$DBSource = $source;
@@ -43,6 +47,10 @@ class Database extends DBException {
             }
         }
         return self::$instance;
+    }
+
+    public static function SetErrorLevel($level) {
+        self::$ErrorLevel = $level;
     }
 
     public function getConnection($source) {
@@ -62,11 +70,16 @@ class Database extends DBException {
         return $ActiveConnection[$ActiveKey];
     }
 
-    public function Error($_FuncName, $_Message = "" ) {
-        switch($this->ErrorLevel) {
+    public function _Error($_FuncName, $_Message = "" ) {
+        switch(self::ErrorLevel) {
             case ERROR_ALL:
+
             break;
             case ERROR_FILE:
+                if(!file_exists(self::ErrorLogDir)) {
+                    mkdir(self::ErrorLogDir);
+                }
+                file_put_contents(self::ErrorLogDir.self::ErrorFile, "[{$_FuncName}] {$_Message}", FILE_APPEND);
             break;
             case ERROR_EXCEPTION:
             break;

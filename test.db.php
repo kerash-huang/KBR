@@ -18,4 +18,20 @@ $db_data = array (
 
 db\Database::loadConnection($db_data);
 $testdb = db\Database::getInstance()->getConnection("local");
-$testdb->query("INSERT INTO mytable (id, name) VALUES (null, 'Hello') ");
+
+db\Database::SetErrorLevel(ERROR_FILE);
+// $testdb->query("INSERT INTO mytable (id, name) VALUES (null, 'Hello') ");
+
+$SelectResult = $testdb->select("*", "mytable", " id < 5 " , array("order"=>"id desc"),"",1);
+html_pre($SelectResult);
+
+
+function html_pre($content, $dump = 1) {
+    echo "<pre>";
+    if($dump) {
+        var_dump($content);
+    } else {
+        echo $content;
+    }
+    echo "</pre>";
+}

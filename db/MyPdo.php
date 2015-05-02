@@ -4,13 +4,17 @@ class MyPdo extends Database {
     public  $handle;
     private $pdo_fetch_type = \PDO::FETCH_ASSOC;
     private $calc_row = false;
+    public  $pub_host, $pub_database;
 
     function __construct($host, $database, $user, $password, $dbtype = "mysql") {
+        $this->pub_host = $host;
+        $this->pub_database = $database;
+
         $dsn = "{$dbtype}:dbname={$database};host={$host}";
         try {
             $this->handle = new \PDO($dsn, $user, $password);
         } catch (\PDOException $e) {
-            parent::Error(__FUNCTION_NAME__, "[Error:".__CLASS__."] ".$e->getMessage());
+            parent::_Error(__FUNCTION_NAME__, "[Error:".__CLASS__."] ".$e->getMessage());
             return false;
         }
     }
@@ -33,40 +37,51 @@ class MyPdo extends Database {
             } else {
                 $this->handle->commit();
             }
+        } catch(\PDOException $e) {
+
         }
     }
 
-
     /**
      * executing 'SELECT' sql
-     * @param  [type]  $column          [description]
-     * @param  [type]  $table           [description]
-     * @param  string  $where_condition [description]
-     * @param  string  $order           [description]
-     * @param  string  $limit           [description]
-     * @param  boolean $is_query_show   [description]
-     * @return [type]                   [description]
+     * @param  mixed  $column           
+     * @param  mixed  $table            
+     * @param  mixed  $where_condition  
+     * @param  mixed  $order            
+     * @param  mixed  $limit            
+     * @param  boolean $is_query_show   
+     * @return mixed                   
      */
     public function select($column, $table, $where_condition = "", $order = "", $limit = "" , $is_query_show = false){
+        if( trim($column) == "" ) {
+            return false;
+        }
+        if( trim($table) == "" ) {
+            return false;
+        }
+
         $query_column = $this->Parser("column", $column);
         $query_table  = $this->Parser("table" , $table);
 
         $query_string = "SELECT {$query_column} FROM {$query_table}";
+
         if(!empty($where_condition)) {
             $query_condition = $this->ParserCondition($where_condition);
             $query_string .= " WHERE {$query_condition} ";
         }
         if(!empty($order)) {
-            $query_order  = $this->Parser("order" , $order);
-            $query_string .= " ORDER BY {$query_order}";
+            $query_order  = $this->Parser("option" , $order);
+            $query_string .= " {$query_order}";
         }
         if(!empty($limit)) {
             $query_limit  = $this->Parser("limit" , $limit);
             $query_string .= " {$query_limit}";
         }
 
+        if($is_query_show) $this->ShowQuery($query_string);
+
         try {
-            $stmt = $link->prepare($query_string);
+            $stmt = $this->handle->prepare($query_string);
             if($stmt) {
                 if(is_array($where_condition)) {
                     $stmt->execute($where_condition);
@@ -75,12 +90,14 @@ class MyPdo extends Database {
                 }
                 $result = $stmt->fetchAll($this->pdo_fetch_type);
             } else {
-                return null; 
+                return null;
             }
             if(count($result)==0) {
                 return null;
             }
-        } catch (PDOException $e) {
+            return $result;
+        } catch (\PDOException $e) {
+            parent::_Error(__FUNCTION_NAME__, "[Error:".__CLASS__."] ".$e->getMessage());
             return false;
         }
 
@@ -94,17 +111,12 @@ class MyPdo extends Database {
     public function delete($table, $where_condition = false){
 
     }
-    public function select_union($column_tables, $) {
-
-    }
 
     public function query($sql_query, $is_query_show = false) {
         try{
             $Connector = $this->handle;
             $sql_query = trim($sql_query);
-            if($is_query_show) {
-                echo $sql_query;
-            }
+            if($is_query_show) $this->ShowQuery($query_string);
             $stmt  = $Connector->prepare($sql_query);
             if($stmt) {
                 $ExecuteReturn = $stmt->execute();
@@ -120,34 +132,38 @@ class MyPdo extends Database {
                         return true;
                     }
                 } else {
-                    return false; 
+                    return false;
                 }
            } else {
                return false;
            }
-        } catch(\Exception $ex) {
+        } catch(\PDOException $e) {
             return false;
         }
     }
 
     /**
      * 拆解 Condition
-     * @param [type] $condition [description]
+     * @param mixed $condition [description]
+     * 如果 condition 是陣列, 那 condition 在處理後， Index 會變成 :{ColumnName}
      */
     private function ParserCondition(&$condition) {
         $return_condition = "";
         if(is_array($condition)) {
-            $copiedCond = $condition;
-            foreach($condition as $ColumnIndex => $cond) {
-                if($cond==="")
-                { 
-                    unset($copiedCond[$ColumnIndex]);  continue; 
+            $copiedCondition = $condition;
+            foreach($condition as $ColumnName => $cond) {
+                if(trim($cond)==="") {
+                    unset($copiedCondition[$ColumnName]);
+                    continue;
                 }
-                $return_condition .= " `{$ColumnIndex}` = :{$ColumnIndex} and";
-                unset($copiedCond[$ColumnIndex]);
-                $copiedCond[":{$ColumnIndex}"] = trim($cond);
+                $return_condition .= " `{$ColumnName}` = :{$ColumnName} and";
+                unset($copiedCondition[$ColumnName]);
+                $copiedCondition[":{$ColumnName}"] = trim($cond);
             }
-            $condition = $copiedCond;
+            if(trim($return_condition)==="") {
+                return "";
+            }
+            $condition = $copiedCondition;
             $return_condition = preg_replace("/and$/","",$return_condition);
         } else if(is_string($condition)) {
             $return_condition = $condition;
@@ -155,9 +171,9 @@ class MyPdo extends Database {
             $return_condition = "";
         }
         return $return_condition;
-        
 
-        
+
+
     }
 
     /**
@@ -192,7 +208,19 @@ class MyPdo extends Database {
                     $return = $data;
                 }
             break;
-            case "option":
+            case "option": // order by, group by
+                if(is_array($data)) {
+                    if(isset($data["order"])) {
+                        $return .= " ORDER BY {$data["order"]}";
+                    }
+                    if(isset($data["group"])) {
+                        $return .= " GROUP BY {$data["group"]}";
+                    }
+                } else if(is_string($data)) {
+                    $return = $data;
+                } else {
+                    $return = $data;
+                }
             break;
             case "limit":
                 if(is_array($data) and count($data)===2) {
@@ -206,5 +234,16 @@ class MyPdo extends Database {
             break;
         }
         return $return;
+    }
+
+    /**
+     * 顯示 SQL 句
+     * @param string $sql 
+     */
+    private function ShowQuery($sql="") {
+        echo "<quoteblock>";
+        echo "<b>[Query]</b> -> ";
+        echo $sql."<br>";
+        echo "</quoteblock>";
     }
 }
