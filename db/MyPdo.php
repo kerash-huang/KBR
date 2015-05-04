@@ -95,7 +95,7 @@ class MyPdo extends Database {
 
         if(!empty($where_condition)) {
             $query_condition = $this->ParserCondition($where_condition);
-            $query_string .= " WHERE {$query_condition} ";
+            $query_string .= "{$query_condition} ";
         }
         if(!empty($order)) {
             $query_order  = $this->Parser("option" , $order);
@@ -143,7 +143,136 @@ class MyPdo extends Database {
         }
 
     }
-    public function insert($table, $column, $data = "", $is_query_show = false) {
+
+    /**
+     * executing 'INSERT' sql
+     * INSERT INTO [TABLE] ([COLUMNS]) VALUES ([VALUES]) 
+     *
+     * Column and data pair
+     * null + array(0=>xxx,1=>xxx)
+     * null + array('x'=>xxx,'y'=>xxx)
+     * null + ('a','b','c')
+     * array(x,y,z) + array(xxx,xxx,xxx)
+     * ('a','b','c') + ('1','2','3')
+     * 
+     * @param  string  $table         
+     * @param  mixed   $column        
+     * @param  string  $data          
+     * @param  boolean $is_query_show 
+     * @return boolean                
+     */
+    public function insert($table, $column, $data = "", $extend ="" , $is_query_show = false) {
+        if(empty($table)) {
+            return false;
+        }
+        $query_table = $table;
+
+        // if only two arguments, let 'data' be the 'column' value
+        if(!empty($column) and empty($data)) {
+            $data = $column;
+            $column = "";
+        }
+
+        // column and data both no data
+        if(empty($data)) {
+            return false;
+        }
+        $query_column = "";
+        $query_value  = "";
+
+        $is_bind_param = false;
+        $bind_param_array = array();
+
+        // num of column and data not match
+        if(is_array($column) and is_array($data) and count($column)!=count($data)) {
+            return false;
+        } else {
+            if(empty($column)) {
+                if(is_array($data)){
+                    $is_bind_param = true;
+                        foreach($data as $val) {
+                            $query_value .= "?,";
+                            array_push($bind_param_array, $val);
+                        }
+                        $query_value = rtrim($query_value, ",").")";
+                    } else {
+                        $query_column = "(";
+                        $query_value  = "(";
+                        foreach($data as $col=>$val) {
+                            $query_column .= "`{$col}`,";
+                            $query_value  .= "?,";
+                            array_push($bind_param_array, $val);
+                        }
+                        $query_value  = rtrim($query_value, ",").")";
+                        $query_column = rtrim($query_column, ",").")";
+                    }
+
+                } else {
+                    $query_value .= "({$data})";
+                }
+            } else if(is_array($column)) {
+                $is_bind_param = true;
+                $query_column = "(";
+                foreach($column as $col) {
+                    $query_column .= "`{$col}`,";
+                }
+                $query_column = rtrim($query_column, ",").")";
+                $query_value  = "(";
+                foreach($data as $val) {
+                    $query_value  .= "?,";
+                    array_push($bind_param_array, $val);
+                }
+                $query_value  = rtrim($query_value, ",").")";
+            } else { // string
+                $query_column = "({$column})";
+                if(is_array($data)) {
+                    $is_bind_param = true;
+                    $query_value  = "(";
+                    foreach($data as $val) {
+                        $query_value  .= "?,";
+                        array_push($bind_param_array, $val);
+                    }
+                    $query_value  = rtrim($query_value, ",").")";
+                } else {
+                    $query_value = "({$data})";
+                }
+            }
+        }
+
+        $query_string = "INSERT INTO {$query_table} ";
+        if(trim($query_column)!="") {
+            $query_string .= " {$query_column} ";
+        }
+        if(trim($query_value)=="") {
+            return false;
+        }
+        $query_string .= " VALUES {$query_value} ";
+        if(trim($extend)!="") {
+            $query_string .= " {$extend} ";
+        }
+        if($is_query_show) $this->ShowQuery($query_string);
+        try {
+            $stmt = $this->handle->prepare($query_string);
+            if($stmt) {
+
+                if($is_bind_param) {
+                    $stmt->execute($bind_param_array);
+                } else {
+                    $stmt->execute();
+                }
+
+                if($stmt->rowCount()>0) {
+                    $AId = $this->handle->lastInsertId();
+                    return $AId;
+                } else {
+                    return false;
+                }
+            } else {
+                return false;
+            }
+        } catch(\PDOException $e) {
+            return false;
+        }
 
     }
     public function update($table, $column, $where_condition, $is_query_show = false){
@@ -169,6 +298,9 @@ class MyPdo extends Database {
                         } else {
                             return false;
                         }
+                    } else if(preg_match("/(insert)/i",$sql_query)) {
+                        $Result = $this->handle->lastInsertId();
+                        return $Result;
                     } else {
                         return true;
                     }
@@ -207,9 +339,13 @@ class MyPdo extends Database {
             $condition = $copiedCondition;
             $return_condition = preg_replace("/and$/","",$return_condition);
         } else if(is_string($condition)) {
+            $condition = trim($condition);
             $return_condition = $condition;
         } else {
             $return_condition = "";
+        }
+        if(trim($return_condition)!="") {
+            $return_condition =  " WHERE {$return_condition} ";
         }
         return $return_condition;
 

@@ -22,9 +22,22 @@ $testdb = db\Database::getInstance()->getConnection("local");
 db\Database::SetErrorLevel(ERROR_FILE);
 // $testdb->query("INSERT INTO mytable (id, name) VALUES (null, 'Hello') ");
 
+// insert pair test
+$r1 = $testdb->insert("mytable", array("name"), array("Test"));
+html_pre($r1);
+$r2 = $testdb->insert("mytable", array("name"=>"Test2"));
+html_pre($r2);
+$r3 = $testdb->insert("mytable", "`name`","'Test3'");
+html_pre($r3);
+$r4 = $testdb->insert("mytable", "", array(null,"TEST4"));
+html_pre($r4);
+$r5 = $testdb->insert("mytable", "", "null,'Test5'");
+html_pre($r5);
+
+
 // calc found rows
 $testdb->SetCalcRows(true);
-$SelectResult = $testdb->select("*", "mytable", " id < 15 " , array("order"=>"id desc"), "limit 3");
+$SelectResult = $testdb->select("*", "mytable", "" , array("order"=>"id desc"), "limit 3");
 $testdb->SetCalcRows(false);
 html_pre($SelectResult);
 echo "Found Rows:" . $testdb->GetResultRowNum();
