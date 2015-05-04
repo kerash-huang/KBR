@@ -22,8 +22,12 @@ $testdb = db\Database::getInstance()->getConnection("local");
 db\Database::SetErrorLevel(ERROR_FILE);
 // $testdb->query("INSERT INTO mytable (id, name) VALUES (null, 'Hello') ");
 
-$SelectResult = $testdb->select("*", "mytable", " id < 5 " , array("order"=>"id desc"),"",1);
+// calc found rows
+$testdb->SetCalcRows(true);
+$SelectResult = $testdb->select("*", "mytable", " id < 15 " , array("order"=>"id desc"), "limit 3");
+$testdb->SetCalcRows(false);
 html_pre($SelectResult);
+echo "Found Rows:" . $testdb->GetResultRowNum();
 
 
 function html_pre($content, $dump = 1) {

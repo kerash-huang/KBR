@@ -2,9 +2,13 @@
 namespace db;
 class MyPdo extends Database {
     public  $handle;
+    
+    public  $pub_host, $pub_database;
+
     private $pdo_fetch_type = \PDO::FETCH_ASSOC;
     private $calc_row = false;
-    public  $pub_host, $pub_database;
+    
+    private $result_row_num = 0;
 
     function __construct($host, $database, $user, $password, $dbtype = "mysql") {
         $this->pub_host = $host;
@@ -23,6 +27,24 @@ class MyPdo extends Database {
         $this->handle = null;
     }
 
+    /**
+     * 設定是否計算 select 行數
+     */
+    function SetCalcRows($calc) {
+        $this->calc_row = $calc;
+    }
+
+    /**
+     * 取得 found_calc_rows 計算結果的總數量
+     */
+    function GetResultRowNum() {
+        return $this->result_row_num;
+    }
+
+    /**
+     * Transaction 用
+     * 開始呼叫 Transaction
+     */
     public function StartTransaction(){
         try {
             $this->handle->beginTransaction();
@@ -30,6 +52,11 @@ class MyPdo extends Database {
 
         }
     }
+
+    /**
+     * 結束 transaction
+     * @param boolean $cancel 是否取消交易
+     */
     public function EndTransaction($cancel = false){
         try {
             if($cancel) {
@@ -61,9 +88,10 @@ class MyPdo extends Database {
         }
 
         $query_column = $this->Parser("column", $column);
+
         $query_table  = $this->Parser("table" , $table);
 
-        $query_string = "SELECT {$query_column} FROM {$query_table}";
+        $query_string = "SELECT ".($this->calc_row?"SQL_CALC_FOUND_ROWS ":"")."{$query_column} FROM {$query_table}";
 
         if(!empty($where_condition)) {
             $query_condition = $this->ParserCondition($where_condition);
@@ -89,6 +117,19 @@ class MyPdo extends Database {
                     $stmt->execute();
                 }
                 $result = $stmt->fetchAll($this->pdo_fetch_type);
+
+                if($this->calc_row) {
+                    $row_stmt = $this->handle->prepare("SELECT FOUND_ROWS() AS CALCROW");
+
+                    if($row_stmt) {
+                        $exec = $row_stmt->execute();
+                        $row_result = $row_stmt->fetchAll(\PDO::FETCH_NUM);
+                        $this->result_row_num = $row_result[0][0];
+
+                    } else {
+                        $this->result_row_num = 0;
+                    }
+                }
             } else {
                 return null;
             }
@@ -195,6 +236,9 @@ class MyPdo extends Database {
                     }
                     $return = rtrim($_d,",");
                 } else if(is_string($data)) {
+                    if($this->calc_row) {
+                        $data = str_replace("SQL_CALC_FOUND_ROWS", "", $data);
+                    }
                     $return = $data;
                 }
             break;
