@@ -24,15 +24,25 @@ db\Database::SetErrorLevel(ERROR_FILE);
 
 // insert pair test
 $r1 = $testdb->insert("mytable", array("name"), array("Test"));
+echo "R1<br>";
 html_pre($r1);
+
 $r2 = $testdb->insert("mytable", array("name"=>"Test2"));
+echo "R2<br>";
 html_pre($r2);
 $r3 = $testdb->insert("mytable", "`name`","'Test3'");
+echo "R3<br>";
 html_pre($r3);
 $r4 = $testdb->insert("mytable", "", array(null,"TEST4"));
+echo "R4<br>";
 html_pre($r4);
 $r5 = $testdb->insert("mytable", "", "null,'Test5'");
+echo "R5<br>";
 html_pre($r5);
+
+
+
+$testdb->delete("mytable", "", "order by id asc", "limit 5");
 
 
 // calc found rows
@@ -41,6 +51,7 @@ $SelectResult = $testdb->select("*", "mytable", "" , array("order"=>"id desc"), 
 $testdb->SetCalcRows(false);
 html_pre($SelectResult);
 echo "Found Rows:" . $testdb->GetResultRowNum();
+
 
 
 function html_pre($content, $dump = 1) {

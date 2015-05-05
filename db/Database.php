@@ -2,10 +2,10 @@
 namespace db;
 /**
  * @descript  Database Conenction
- * @author    Kerash <kerashman@gmail.com>
+ * @author    Kerash <kerash@livemail.com>
  * @date      2015/04/26
  * @last      2015/05/05
- * @version   v1.0.4b
+ * @version   v1.0.6b
  *     
  * $DBSource definition struct
  * array(
@@ -15,10 +15,10 @@ namespace db;
  * 
  */
 
-define("ERROR_ALL", 0x103);
-define("ERROR_FILE", 0x105);
-define("ERROR_EXCEPTION", 0x107);
-define("ERROR_ECHO", 0x109);
+define("ERROR_ALL", 0x103, true);
+define("ERROR_FILE", 0x105, true);
+define("ERROR_EXCEPTION", 0x107, true);
+define("ERROR_ECHO", 0x109, true);
 
 class Database extends DBException {
     private static $DBSource = null;
@@ -31,7 +31,6 @@ class Database extends DBException {
 
 
     function __construct() {
-
     }
 
     public static function loadConnection( $source ) {
@@ -71,15 +70,17 @@ class Database extends DBException {
     }
 
     public function _Error($_FuncName, $_Message = "" ) {
-        switch(self::ErrorLevel) {
+        switch(self::$ErrorLevel) {
             case ERROR_ALL:
 
             break;
             case ERROR_FILE:
-                if(!file_exists(self::ErrorLogDir)) {
-                    mkdir(self::ErrorLogDir);
+                if(!file_exists(self::$ErrorLogDir)) {
+                    mkdir(self::$ErrorLogDir,0777);
                 }
-                file_put_contents(self::ErrorLogDir.self::ErrorFile, "[{$_FuncName}] {$_Message}", FILE_APPEND);
+                if(file_exists(self::$ErrorLogDir)) {
+                    file_put_contents(self::$ErrorLogDir.self::$ErrorFile, "[{$_FuncName}] {$_Message}", FILE_APPEND);
+                }
             break;
             case ERROR_EXCEPTION:
             break;

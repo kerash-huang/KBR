@@ -18,7 +18,7 @@ class MyPdo extends Database {
         try {
             $this->handle = new \PDO($dsn, $user, $password);
         } catch (\PDOException $e) {
-            parent::_Error(__FUNCTION_NAME__, "[Error:".__CLASS__."] ".$e->getMessage());
+            parent::_Error(__FUNCTION__, "[Error:".__CLASS__."] ".$e->getMessage());
             return false;
         }
     }
@@ -80,7 +80,9 @@ class MyPdo extends Database {
      * @return mixed                   
      */
     public function select($column, $table, $where_condition = "", $order = "", $limit = "" , $is_query_show = false){
-        if( trim($column) == "" ) {
+        if( !is_array($column) and trim($column) == "" ) {
+            return false;
+        } else if(is_array($column) and count($column)==0) {
             return false;
         }
         if( trim($table) == "" ) {
@@ -162,7 +164,7 @@ class MyPdo extends Database {
      * @return boolean                
      */
     public function insert($table, $column, $data = "", $extend ="" , $is_query_show = false) {
-        if(empty($table)) {
+        if(is_array($table) or empty($table)) {
             return false;
         }
         $query_table = $table;
@@ -190,6 +192,10 @@ class MyPdo extends Database {
             if(empty($column)) {
                 if(is_array($data)){
                     $is_bind_param = true;
+                    $keys = array_keys($data);
+
+                    if($keys[0]===0){
+                        $query_value  = "(";
                         foreach($data as $val) {
                             $query_value .= "?,";
                             array_push($bind_param_array, $val);
@@ -278,8 +284,55 @@ class MyPdo extends Database {
     public function update($table, $column, $where_condition, $is_query_show = false){
 
     }
-    public function delete($table, $where_condition = false){
 
+    /**
+     * executing 'delete' sql
+     * @param  mixed  $table           
+     * @param  mixed  $where_condition 
+     * @param  boolean $is_query_show   
+     * @return boolean
+     */
+    public function delete($table, $where_condition, $order = "", $limit = "", $is_query_show = false){
+        if( empty($table) ) {
+            return false;
+        }
+        $is_bind_param = false;
+        $query_table = $table;
+        $query_string = "DELETE FROM {$query_table} ";
+        if(!empty($where_condition)) {
+            if(is_array($where_condition)) {
+                $is_bind_param = true;
+            }
+            $query_condition = $this->ParserCondition($where_condition);
+            $query_string .= $query_condition;
+        }
+
+        if(!empty($order)) {
+            $query_order  = $this->Parser("option" , $order);
+            $query_string .= " {$query_order}";
+        }
+        
+        if(!empty($limit)) {
+            $query_limit  = $this->Parser("limit" , $limit);
+            $query_string .= " {$query_limit}";
+        }
+
+        if($is_query_show) $this->ShowQuery($query_string);
+        try {
+            $stmt = $this->handle->prepare($query_string);
+            if($stmt) {
+                if($is_bind_param) {
+                    $stmt->execute($bind_param_array);
+                } else {
+                    $stmt->execute();
+                }
+                return true;
+            } else {
+                return false;
+            }
+        } catch(\PDOException $e) {
+            return false;
+        }
     }
 
     public function query($sql_query, $is_query_show = false) {
@@ -370,7 +423,7 @@ class MyPdo extends Database {
                     foreach($data as $_d) {
                         $return .= "`{$_d}`,";
                     }
-                    $return = rtrim($_d,",");
+                    $return = rtrim($return,",");
                 } else if(is_string($data)) {
                     if($this->calc_row) {
                         $data = str_replace("SQL_CALC_FOUND_ROWS", "", $data);
@@ -381,9 +434,14 @@ class MyPdo extends Database {
             case "table":
                 if(is_array($data)) {
                     foreach($data as $_d) {
-                        $return .= "`{$_d}`,";
+                        if(strpos($_d, ".")!==false) { // aaa.bbb
+                            $_td = explode(".", $_d);
+                            $return .= "`".trim($_td[0], "`")."`.`".trim($_td[1], "`")."`,";
+                        } else {
+                            $return .= "`{$_d}`,";
+                        }
                     }
-                    $return = rtrim($_d,",");
+                    $return = rtrim($return,",");
                 } else if(is_string($data)) {
                     $return = $data;
                 }
