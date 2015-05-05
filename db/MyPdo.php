@@ -2,13 +2,13 @@
 namespace db;
 class MyPdo extends Database {
     public  $handle;
-    
+
     public  $pub_host, $pub_database;
 
     private $pdo_fetch_type = \PDO::FETCH_ASSOC;
-    private $pdo_default_char = "utf8";
+    private $pdo_default_char = "UTF8";
     private $calc_row = false;
-    
+
     private $result_row_num = 0;
 
     function __construct($host, $database, $user, $password, $dbtype = "mysql") {
@@ -17,8 +17,9 @@ class MyPdo extends Database {
 
         $dsn = "{$dbtype}:dbname={$database};host={$host}";
         try {
-            $this->handle = new \PDO($dsn, $user, $password);
-            $this->handle->exec("set names ".$this->pdo_default_char);
+            $this->handle = new \PDO($dsn, $user, $password,
+                array(\PDO::MYSQL_ATTR_INIT_COMMAND => "SET NAMES {$this->pdo_default_char}")
+            );
         } catch (\PDOException $e) {
             parent::_Error(__FUNCTION__, "[Error:".__CLASS__."] ".$e->getMessage());
             return false;
@@ -73,13 +74,13 @@ class MyPdo extends Database {
 
     /**
      * executing 'SELECT' sql
-     * @param  mixed  $column           
-     * @param  mixed  $table            
-     * @param  mixed  $where_condition  
-     * @param  mixed  $order            
-     * @param  mixed  $limit            
-     * @param  boolean $is_query_show   
-     * @return mixed                   
+     * @param  mixed  $column
+     * @param  mixed  $table
+     * @param  mixed  $where_condition
+     * @param  mixed  $order
+     * @param  mixed  $limit
+     * @param  boolean $is_query_show
+     * @return mixed
      */
     public function select($column, $table, $where_condition = "", $order = "", $limit = "" , $is_query_show = false){
         if( !is_array($column) and trim($column) == "" ) {
@@ -149,8 +150,30 @@ class MyPdo extends Database {
     }
 
     /**
+     * 搜尋單一條件
+     * @param  mixed  $column
+     * @param  mixed  $table
+     * @param  string  $where_condition
+     * @param  string  $order
+     * @param  string  $limit
+     * @param  boolean $is_query_show
+     * @return mixed
+     */
+    public function selectone($column, $table, $where_condition = "", $order = "", $limit = "" , $is_query_show = false) {
+        $limit = " LIMIT 1 ";
+        $result = $this->select($column, $table, $where_condition, $order, $limit, $is_query_show);
+        if($result) {
+            $result = $result[0];
+            return $result;
+        } else {
+            return false;
+        }
+
+    }
+
+    /**
      * executing 'INSERT' sql
-     * INSERT INTO [TABLE] ([COLUMNS]) VALUES ([VALUES]) 
+     * INSERT INTO [TABLE] ([COLUMNS]) VALUES ([VALUES])
      *
      * Column and data pair
      * null + array(0=>xxx,1=>xxx)
@@ -158,12 +181,12 @@ class MyPdo extends Database {
      * null + ('a','b','c')
      * array(x,y,z) + array(xxx,xxx,xxx)
      * ('a','b','c') + ('1','2','3')
-     * 
-     * @param  string  $table         
-     * @param  mixed   $column        
-     * @param  string  $data          
-     * @param  boolean $is_query_show 
-     * @return boolean                
+     *
+     * @param  string  $table
+     * @param  mixed   $column
+     * @param  string  $data
+     * @param  boolean $is_query_show
+     * @return boolean
      */
     public function insert($table, $column, $data = "", $extend ="" , $is_query_show = false) {
         if(is_array($table) or empty($table)) {
@@ -289,9 +312,9 @@ class MyPdo extends Database {
 
     /**
      * executing 'delete' sql
-     * @param  mixed  $table           
-     * @param  mixed  $where_condition 
-     * @param  boolean $is_query_show   
+     * @param  mixed  $table
+     * @param  mixed  $where_condition
+     * @param  boolean $is_query_show
      * @return boolean
      */
     public function delete($table, $where_condition, $order = "", $limit = "", $is_query_show = false){
@@ -313,7 +336,7 @@ class MyPdo extends Database {
             $query_order  = $this->Parser("option" , $order);
             $query_string .= " {$query_order}";
         }
-        
+
         if(!empty($limit)) {
             $query_limit  = $this->Parser("limit" , $limit);
             $query_string .= " {$query_limit}";
@@ -372,7 +395,7 @@ class MyPdo extends Database {
 
     /**
      * 拆解 Condition
-     * @param mixed $condition [description]
+     * @param mixed $condition
      * 如果 condition 是陣列, 那 condition 在處理後， Index 會變成 :{ColumnName}
      */
     private function ParserCondition(&$condition) {
@@ -414,8 +437,8 @@ class MyPdo extends Database {
      *  - table   [string]
      *  - option  [string, {group: "column", order:"column desc|asc"}]
      *  - limit   [string, [0,1], *default30]
-     * @param [type] $type [description]
-     * @param [type] $data [description]
+     * @param [type] $type
+     * @param [type] $data
      */
     private function Parser($type, $data) {
         $return = "";
@@ -478,7 +501,7 @@ class MyPdo extends Database {
 
     /**
      * 顯示 SQL 句
-     * @param string $sql 
+     * @param string $sql
      */
     private function ShowQuery($sql="") {
         echo "<quoteblock>";

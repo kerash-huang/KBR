@@ -5,7 +5,7 @@ namespace db;
  * @author        Kerash <kerash@livemail.com>
  * @start         2015/04/26
  * @last-modify   2015/05/05
- * @version       v1.0.7b
+ * @version       v1.1.0b
  *     
  * $DBSource definition struct
  * array(

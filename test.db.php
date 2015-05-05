@@ -1,6 +1,6 @@
 <?php
 require_once "autoload.php";
-
+header("Content-type: text/html; charset='utf-8'");
 /**
  * import.sql
  *
@@ -33,16 +33,18 @@ html_pre($r2);
 $r3 = $testdb->insert("mytable", "`name`","'Test3'");
 echo "R3<br>";
 html_pre($r3);
-$r4 = $testdb->insert("mytable", "", array(null,"TEST4"));
+$r4 = $testdb->insert("mytable", "", array(null,"中文"));
 echo "R4<br>";
 html_pre($r4);
 $r5 = $testdb->insert("mytable", "", "null,'Test5'");
 echo "R5<br>";
 html_pre($r5);
 
+$OneResult = $testdb->selectone("*", "mytable", "id>5");
+var_dump($OneResult);
 
 
-$testdb->delete("mytable", "", "order by id asc", "limit 5");
+// $testdb->delete("mytable", "", "order by id asc", "limit 5");
 
 
 // calc found rows
