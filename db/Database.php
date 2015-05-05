@@ -1,11 +1,11 @@
 <?php
 namespace db;
 /**
- * @descript  Database Conenction
- * @author    Kerash <kerash@livemail.com>
- * @date      2015/04/26
- * @last      2015/05/05
- * @version   v1.0.6b
+ * @descript      Database Conenction
+ * @author        Kerash <kerash@livemail.com>
+ * @start         2015/04/26
+ * @last-modify   2015/05/05
+ * @version       v1.0.7b
  *     
  * $DBSource definition struct
  * array(

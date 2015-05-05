@@ -6,6 +6,7 @@ class MyPdo extends Database {
     public  $pub_host, $pub_database;
 
     private $pdo_fetch_type = \PDO::FETCH_ASSOC;
+    private $pdo_default_char = "utf8";
     private $calc_row = false;
     
     private $result_row_num = 0;
@@ -17,6 +18,7 @@ class MyPdo extends Database {
         $dsn = "{$dbtype}:dbname={$database};host={$host}";
         try {
             $this->handle = new \PDO($dsn, $user, $password);
+            $this->handle->exec("set names ".$this->pdo_default_char);
         } catch (\PDOException $e) {
             parent::_Error(__FUNCTION__, "[Error:".__CLASS__."] ".$e->getMessage());
             return false;
