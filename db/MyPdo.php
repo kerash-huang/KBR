@@ -20,6 +20,9 @@ class MyPdo extends Database {
             $this->handle = new \PDO($dsn, $user, $password,
                 array(\PDO::MYSQL_ATTR_INIT_COMMAND => "SET NAMES {$this->pdo_default_char}")
             );
+            $this->handle->setAttribute(PDO::ATTR_EMULATE_PREPARES, false); // send statement twice for preventing sql injection
+            $this->handle->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+
         } catch (\PDOException $e) {
             parent::_Error(__FUNCTION__, "[Error:".__CLASS__."] ".$e->getMessage());
             return false;

@@ -29,9 +29,7 @@ class Database extends DBException {
     private static $ErrorLogDir = "./C_DB_LOG/";
     private static $ErrorFile  = "Database.Error.Logfile.log";
 
-
-    function __construct() {
-    }
+    function __construct() { }
 
     public static function loadConnection( $source ) {
         self::$DBSource = $source;
