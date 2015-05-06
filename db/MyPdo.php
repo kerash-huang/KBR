@@ -306,8 +306,61 @@ class MyPdo extends Database {
         }
 
     }
-    public function update($table, $column, $where_condition, $is_query_show = false){
 
+    /**
+     * executing 'update' sql
+     * @param  mixed  $table
+     * @param  mixed  $data
+     * @param  mixed  $where_condition
+     * @param  boolean $is_query_show
+     * @return boolean
+     */
+    public function update($table, $data, $where_condition, $is_query_show = false){
+        if(empty($table) or empty($data)) {
+            return false;
+        }
+        $query_table = $table;
+        $is_bind_param = false;
+        $query_data = "";
+        $bind_param_array = array();
+        if(is_array($data)) {
+            $is_bind_param = true;
+            foreach($data as $col=>$val) {
+                $query_data .= "{$col}= ?,";
+                array_push($bind_param_array, $val);
+            }
+            $query_data = rtrim($query_data,",");
+        } else {
+            $query_data = $data;
+        }
+
+        $query_condition = "";
+        if(!empty($where_condition)) {
+            if(is_array($where_condition)) {
+                $is_bind_param = true;
+                foreach($where_condition as $col=>$val) {
+                    $query_condition .= "{$col}= ?,";
+                    array_push($bind_param_array, $val);
+                }
+                $query_condition = rtrim($query_condition,",");
+            } else {
+                $query_condition = $where_condition;
+            }
+            $query_condition = "WHERE {$query_condition}";
+        }
+
+        $query_string = "UPDATE {$query_table} SET {$query_data} {$query_condition}";
+        try {
+            $stmt = $this->handle->prepare($query_string);
+            if($stmt) {
+                $success = $stmt->execute($is_bind_param?$bind_param_array:null);
+                return $success;
+            } else {
+                return false;
+            }
+        } catch(\PDOException $e) {
+            return false;
+        }
     }
 
     /**
@@ -347,11 +400,11 @@ class MyPdo extends Database {
             $stmt = $this->handle->prepare($query_string);
             if($stmt) {
                 if($is_bind_param) {
-                    $stmt->execute($bind_param_array);
+                    $success = $stmt->execute($bind_param_array);
                 } else {
-                    $stmt->execute();
+                    $success = $stmt->execute();
                 }
-                return true;
+                return $success;
             } else {
                 return false;
             }
@@ -360,12 +413,17 @@ class MyPdo extends Database {
         }
     }
 
+    /**
+     * 直接執行 sql 句
+     * @param  string  $sql_query
+     * @param  boolean $is_query_show
+     * @return mixed
+     */
     public function query($sql_query, $is_query_show = false) {
         try{
-            $Connector = $this->handle;
             $sql_query = trim($sql_query);
             if($is_query_show) $this->ShowQuery($query_string);
-            $stmt  = $Connector->prepare($sql_query);
+            $stmt  = $this->handle->prepare($sql_query);
             if($stmt) {
                 $ExecuteReturn = $stmt->execute();
                 if($ExecuteReturn) {
@@ -376,7 +434,7 @@ class MyPdo extends Database {
                         } else {
                             return false;
                         }
-                    } else if(preg_match("/(insert)/i",$sql_query)) {
+                    } else if(preg_match("/^insert/i",$sql_query)) {
                         $Result = $this->handle->lastInsertId();
                         return $Result;
                     } else {
@@ -397,6 +455,8 @@ class MyPdo extends Database {
      * 拆解 Condition
      * @param mixed $condition
      * 如果 condition 是陣列, 那 condition 在處理後， Index 會變成 :{ColumnName}
+     * p.s. 由於 update 的條件跟 update 的 data 可能為同欄位，所以不能用 :ColumnName 取代，需要用 ?
+     *      無法使用此方法
      */
     private function ParserCondition(&$condition) {
         $return_condition = "";
@@ -437,8 +497,8 @@ class MyPdo extends Database {
      *  - table   [string]
      *  - option  [string, {group: "column", order:"column desc|asc"}]
      *  - limit   [string, [0,1], *default30]
-     * @param [type] $type
-     * @param [type] $data
+     * @param mixed $type
+     * @param mixed $data
      */
     private function Parser($type, $data) {
         $return = "";
