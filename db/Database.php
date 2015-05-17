@@ -29,10 +29,13 @@ class Database extends DBException {
     private static $ErrorLogDir = "./C_DB_LOG/";
     private static $ErrorFile  = "Database.Error.Logfile.log";
 
-    function __construct() { }
+    function __construct() { 
+
+    }
 
     public static function loadConnection( $source ) {
         self::$DBSource = $source;
+        register_shutdown_function("db\Database::destruct");
     }
 
     public static function getInstance() {
@@ -48,6 +51,16 @@ class Database extends DBException {
 
     public static function SetErrorLevel($level) {
         self::$ErrorLevel = $level;
+    }
+
+    public static function destruct() {
+        if(count(self::$ActiveConnection)>0) {
+            foreach(self::$ActiveConnection as $name => $Connect) {
+                $Connect->handle = null;
+                unset(self::$ActiveConnection[$name]);
+            }
+        }
+        return;
     }
 
     public function getConnection($source) {
@@ -87,4 +100,5 @@ class Database extends DBException {
             break;
         }
     }
+
 }
