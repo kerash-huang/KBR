@@ -56,7 +56,6 @@ class Database extends DBException {
     public static function destruct() {
         if(count(self::$ActiveConnection)>0) {
             foreach(self::$ActiveConnection as $name => $Connect) {
-                $Connect->handle = null;
                 unset(self::$ActiveConnection[$name]);
             }
         }
@@ -80,7 +79,7 @@ class Database extends DBException {
         return $ActiveConnection[$ActiveKey];
     }
 
-    public function _Error($_FuncName, $_Message = "" ) {
+    public function _Error( $_FuncName, $_Message = "" ) {
         switch(self::$ErrorLevel) {
             case ERROR_ALL:
 
@@ -90,10 +89,11 @@ class Database extends DBException {
                     mkdir(self::$ErrorLogDir,0777);
                 }
                 if(file_exists(self::$ErrorLogDir)) {
-                    file_put_contents(self::$ErrorLogDir.self::$ErrorFile, "[{$_FuncName}] {$_Message}", FILE_APPEND);
+                    file_put_contents("[DatabaseErrLog@".date("Y-m-d H:i:s")."]".self::$ErrorLogDir.self::$ErrorFile, "[{$_FuncName}] {$_Message}\n", FILE_APPEND);
                 }
             break;
             case ERROR_EXCEPTION:
+
             break;
             case ERROR_ECHO:
                 echo "<b>Database error message</b><br> [{$_FuncName}] {$_Message}";

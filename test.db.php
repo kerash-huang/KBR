@@ -72,7 +72,6 @@ var_dump($t1,$t2,$t3,$t4);
 
 echo "<br>";
 echo "<h2>DELETE</h2>";
-
 // delete test
 // $d1 = $testdb->delete("mytable", "", "order by id asc", "limit 5");
 // var_dump($d1);
