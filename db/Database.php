@@ -4,8 +4,8 @@ namespace db;
  * @descript      Database Conenction
  * @author        Kerash <kerash@livemail.com>
  * @start         2015/04/26
- * @last-modify   2015/05/06
- * @version       v1.2.0 release
+ * @last-modify   2015/05/23
+ * @version       v1.2.3 release
  *     
  * $DBSource definition struct
  * array(
@@ -35,7 +35,7 @@ class Database extends DBException {
 
     public static function loadConnection( $source ) {
         self::$DBSource = $source;
-        register_shutdown_function("db\Database::destruct");
+        register_shutdown_function(array("db\Database","destruct"));
     }
 
     public static function getInstance() {
@@ -49,10 +49,14 @@ class Database extends DBException {
         return self::$instance;
     }
 
-    public static function SetErrorLevel($level) {
+    public static function setErrorLevel($level) {
         self::$ErrorLevel = $level;
     }
 
+    /**
+     * 解構
+     * @return [type] [description]
+     */
     public static function destruct() {
         if(count(self::$ActiveConnection)>0) {
             foreach(self::$ActiveConnection as $name => $Connect) {
@@ -62,6 +66,11 @@ class Database extends DBException {
         return;
     }
 
+    /**
+     * 取得資料庫連線實體
+     * @param  string $source [description]
+     * @return [type]         [description]
+     */
     public function getConnection($source) {
         if(!isset(self::$DBSource)) {
             throw new \Exception("Define the database connect information first. (use Database::loadConnection([Array])");
@@ -79,18 +88,38 @@ class Database extends DBException {
         return $ActiveConnection[$ActiveKey];
     }
 
+    /**
+     * 中斷連線
+     * @param mixed $source 連線名稱
+     *
+     */
+    public function disconnect($source) {
+        $source = (array)($source);
+        foreach($source as $ln) {
+            if(!isset(self::$DBSource[$ln])) {
+                return true;
+            } else {
+                self::$DBSource[$ln]->Disconnect();
+            }
+        }
+    }
+
+    /**
+     * 中斷目前所有的連線
+     */
+    public function disconnectAll() {
+        foreach(self::$ActiveConnection as $Dblink) {
+            $Dblink->Disconnect();
+        }
+    }
+
     public function _Error( $_FuncName, $_Message = "" ) {
         switch(self::$ErrorLevel) {
             case ERROR_ALL:
-
+                $this->_Error_File($_FuncName, $_Message);
             break;
             case ERROR_FILE:
-                if(!file_exists(self::$ErrorLogDir)) {
-                    mkdir(self::$ErrorLogDir,0777);
-                }
-                if(file_exists(self::$ErrorLogDir)) {
-                    file_put_contents("[DatabaseErrLog@".date("Y-m-d H:i:s")."]".self::$ErrorLogDir.self::$ErrorFile, "[{$_FuncName}] {$_Message}\n", FILE_APPEND);
-                }
+                $this->_Error_File($_FuncName, $_Message);
             break;
             case ERROR_EXCEPTION:
 
@@ -98,6 +127,15 @@ class Database extends DBException {
             case ERROR_ECHO:
                 echo "<b>Database error message</b><br> [{$_FuncName}] {$_Message}";
             break;
+        }
+    }
+
+    private function _Error_File( $_Fn, $_M) {
+        if(!file_exists(self::$ErrorLogDir)) {
+            mkdir(self::$ErrorLogDir,0777);
+        }
+        if(file_exists(self::$ErrorLogDir)) {
+            file_put_contents(self::$ErrorLogDir.self::$ErrorFile, "[DbErrLog@".date("Y-m-d H:i:s")."]\n[Function:{$_Fn}]\n[Message]{$_M}\n", FILE_APPEND);
         }
     }
 

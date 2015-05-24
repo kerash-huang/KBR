@@ -1,9 +1,17 @@
 <?php
 namespace db;
 class MyPdo extends Database {
+    // PDO Object
     public  $handle;
 
+    /**
+     * 紀錄曾經建立連線過（作為 disconnect 後再重連時的判斷）
+     * 當 
+     */
+    private $haveConnected = false;
+    
     public  $pub_host, $pub_database;
+    public  $pub_user, $pub_password;
 
     private $pdo_fetch_type = \PDO::FETCH_ASSOC;
     private $pdo_default_char = "UTF8";
@@ -12,8 +20,10 @@ class MyPdo extends Database {
     private $result_row_num = 0;
 
     function __construct($host, $database, $user, $password, $dbtype = "mysql") {
-        $this->pub_host = $host;
+        $this->pub_host     = $host;
         $this->pub_database = $database;
+        $this->pub_user     = $user;
+        $this->pub_password = $password;
 
         $dsn = "{$dbtype}:dbname={$database};host={$host}";
         try {
@@ -22,11 +32,34 @@ class MyPdo extends Database {
             );
             $this->handle->setAttribute(\PDO::ATTR_EMULATE_PREPARES, false); // send statement twice for preventing sql injection
             $this->handle->setAttribute(\PDO::ATTR_ERRMODE, \PDO::ERRMODE_EXCEPTION);
-
+            $haveConnected = true;
         } catch (\PDOException $e) {
             parent::_Error(__FUNCTION__, "[Error:".__CLASS__."] ".$e->getMessage());
             return false;
         }
+    }
+
+    /**
+     * 中斷連線
+     */
+    function Disconnect() {
+        // use empty null to close pdo connection 
+        $this->handle = null;
+    }
+
+    /**
+     * 重新連線
+     * 注：使用產生出此連線的資訊重新連線
+     */
+    function ReConnect() {
+        if(!$this->haveConnected) {
+            return false;
+        }
+        $this->handle = new \PDO($dsn, $user, $password,
+            array(\PDO::MYSQL_ATTR_INIT_COMMAND => "SET NAMES {$this->pdo_default_char}")
+        );
+        $this->handle->setAttribute(\PDO::ATTR_EMULATE_PREPARES, false); // send statement twice for preventing sql injection
+        $this->handle->setAttribute(\PDO::ATTR_ERRMODE, \PDO::ERRMODE_EXCEPTION);
     }
 
     function __destruct() {

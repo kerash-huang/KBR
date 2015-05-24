@@ -13,12 +13,19 @@ header("Content-type: text/html; charset='utf-8'");
  */
 
 $db_data = array (
-    "local" => array ("dbtype"=>"mysql", "host"=>"127.0.0.1", "dbname"=>"test", "user"=>"root", "password"=>"admin")
+    "local" => array ("dbtype"=>"mysql", "host"=>"127.0.0.1", "dbname"=>"test", "user"=>"root", "password"=>"admin"),
+    "read" => array ("dbtype"=>"mysql", "host"=>"127.0.0.1", "dbname"=>"test", "user"=>"dbtest", "password"=>"test1234")
 );
 
 db\Database::loadConnection($db_data);
-$testdb = db\Database::getInstance()->getConnection("local");
-db\Database::SetErrorLevel(ERROR_FILE);
+db\Database::setErrorLevel(ERROR_FILE);
+
+$testdb = db\Database::getInstance()->getConnection("read");
+if(!$testdb) {
+  echo "NoLink";
+  die();
+}
+
 // $testdb->query("INSERT INTO mytable (id, name) VALUES (null, 'Hello') ");
 
 
