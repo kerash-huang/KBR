@@ -4,8 +4,8 @@ namespace db;
  * @descript      Database Conenction
  * @author        Kerash <kerash@livemail.com>
  * @start         2015/04/26
- * @last-modify   2015/05/23
- * @version       v1.2.3 release
+ * @last-modify   2015/05/25
+ * @version       v1.2.5 release
  *     
  * $DBSource definition struct
  * array(
@@ -93,7 +93,7 @@ class Database extends DBException {
      * @param mixed $source 連線名稱
      *
      */
-    public function disconnect($source) {
+    public function disconnectDb($source) {
         $source = (array)($source);
         foreach($source as $ln) {
             if(!isset(self::$DBSource[$ln])) {

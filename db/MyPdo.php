@@ -32,7 +32,7 @@ class MyPdo extends Database {
             );
             $this->handle->setAttribute(\PDO::ATTR_EMULATE_PREPARES, false); // send statement twice for preventing sql injection
             $this->handle->setAttribute(\PDO::ATTR_ERRMODE, \PDO::ERRMODE_EXCEPTION);
-            $haveConnected = true;
+            $this->haveConnected = true;
         } catch (\PDOException $e) {
             parent::_Error(__FUNCTION__, "[Error:".__CLASS__."] ".$e->getMessage());
             return false;
@@ -50,7 +50,12 @@ class MyPdo extends Database {
     /**
      * 重新連線
      * 注：使用產生出此連線的資訊重新連線
+     * connect alias ReConnect;
      */
+    function connect() {
+        $this->ReConnect();
+    }
+
     function ReConnect() {
         if(!$this->haveConnected) {
             return false;
