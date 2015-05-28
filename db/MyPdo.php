@@ -6,10 +6,10 @@ class MyPdo extends Database {
 
     /**
      * 紀錄曾經建立連線過（作為 disconnect 後再重連時的判斷）
-     * 當 
+     * 當
      */
     private $haveConnected = false;
-    
+
     public  $pub_host, $pub_database;
     public  $pub_user, $pub_password;
 
@@ -43,7 +43,7 @@ class MyPdo extends Database {
      * 中斷連線
      */
     function Disconnect() {
-        // use empty null to close pdo connection 
+        // use empty null to close pdo connection
         $this->handle = null;
     }
 
@@ -455,6 +455,16 @@ class MyPdo extends Database {
     }
 
     /**
+     * query 的 alias
+     * @param  string  $sql_query
+     * @param  boolean $is_query_show
+     * @return [type]
+     */
+    public function do_query($sql_query, $is_query_show = false) {
+        return $this->query($sql_query, $is_query_show);
+    }
+
+    /**
      * 直接執行 sql 句
      * @param  string  $sql_query
      * @param  boolean $is_query_show
@@ -463,7 +473,7 @@ class MyPdo extends Database {
     public function query($sql_query, $is_query_show = false) {
         try{
             $sql_query = trim($sql_query);
-            if($is_query_show) $this->ShowQuery($query_string);
+            if($is_query_show) $this->ShowQuery($sql_query);
             $stmt  = $this->handle->prepare($sql_query);
             if($stmt) {
                 $ExecuteReturn = $stmt->execute();
