@@ -584,11 +584,11 @@ class MyPdo extends Database {
             break;
             case "option": // order by, group by
                 if(is_array($data)) {
-                    if(isset($data["order"])) {
-                        $return .= " ORDER BY {$data["order"]}";
-                    }
                     if(isset($data["group"])) {
                         $return .= " GROUP BY {$data["group"]}";
+                    }
+                    if(isset($data["order"])) {
+                        $return .= " ORDER BY {$data["order"]}";
                     }
                 } else if(is_string($data)) {
                     $return = $data;

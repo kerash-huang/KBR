@@ -4,15 +4,15 @@ namespace db;
  * @descript      Database Conenction
  * @author        Kerash <kerash@livemail.com>
  * @start         2015/04/26
- * @last-modify   2015/05/25
- * @version       v1.2.5 release
- *     
+ * @last-modify   2015/05/29 
+ * @version       v1.2.7
+ *
  * $DBSource definition struct
  * array(
  *     "key" => array("host","dbname","user","password",["dbtype"])
  *     "key2"=> array("host","dbname","user","password",["dbtype"])
  * );
- * 
+ *
  */
 
 define("ERROR_ALL", 0x103, true);
@@ -29,7 +29,7 @@ class Database extends DBException {
     private static $ErrorLogDir = "./C_DB_LOG/";
     private static $ErrorFile  = "Database.Error.Logfile.log";
 
-    function __construct() { 
+    function __construct() {
 
     }
 
@@ -55,7 +55,7 @@ class Database extends DBException {
 
     /**
      * 解構
-     * @return [type] [description]
+     * @return [type]
      */
     public static function destruct() {
         if(count(self::$ActiveConnection)>0) {
@@ -68,8 +68,8 @@ class Database extends DBException {
 
     /**
      * 取得資料庫連線實體
-     * @param  string $source [description]
-     * @return [type]         [description]
+     * @param  string $source
+     * @return [type]
      */
     public function getConnection($source) {
         if(!isset(self::$DBSource)) {
