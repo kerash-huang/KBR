@@ -6,10 +6,8 @@ class MyPdo extends Database {
 
     /**
      * 紀錄曾經建立連線過（作為 disconnect 後再重連時的判斷）
-     * 當
      */
     private $haveConnected = false;
-
     public  $pub_host, $pub_database;
     public  $pub_user, $pub_password;
 

@@ -4,8 +4,8 @@ namespace db;
  * @descript      Database Conenction
  * @author        Kerash <kerash@livemail.com>
  * @start         2015/04/26
- * @last-modify   2015/05/29 
- * @version       v1.2.7
+ * @last-modify   2015/06/04
+ * @version       v1.2.9
  *
  * $DBSource definition struct
  * array(
@@ -24,6 +24,8 @@ class Database extends DBException {
     private static $DBSource = null;
     private static $ActiveConnection = array();
     private static $instance;
+
+    private static $ActiveCount = 0;
 
     private static $ErrorLevel = ERROR_FILE;
     private static $ErrorLogDir = "./C_DB_LOG/";
@@ -81,11 +83,10 @@ class Database extends DBException {
         }
 
         $ActiveKey = str_replace(".","_",$SourceDefine["host"]).$SourceDefine["user"];
-        if( !isset($ActiveConnection[$ActiveKey] )) {
-            $myPdo = new MyPdo($SourceDefine["host"], $SourceDefine["dbname"], $SourceDefine["user"], $SourceDefine["password"],$SourceDefine["dbtype"]);
-            $ActiveConnection[$ActiveKey] = $myPdo;
+        if( !isset(self::$ActiveConnection[$ActiveKey] )) {
+            self::$ActiveConnection[$ActiveKey] = new MyPdo($SourceDefine["host"], $SourceDefine["dbname"], $SourceDefine["user"], $SourceDefine["password"],$SourceDefine["dbtype"]);
         }
-        return $ActiveConnection[$ActiveKey];
+        return self::$ActiveConnection[$ActiveKey];
     }
 
     /**
