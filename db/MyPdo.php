@@ -182,7 +182,7 @@ class MyPdo extends Database {
             }
             return $result;
         } catch (\PDOException $e) {
-            parent::_Error(__FUNCTION_NAME__, "[Error:".__CLASS__."] ".$e->getMessage());
+            parent::_Error(__FUNCTION__, "[Error:".__CLASS__."] ".$e->getMessage());
             return false;
         }
 
