@@ -463,6 +463,26 @@ class MyPdo extends Database {
     }
 
     /**
+     * do Query and get only one result
+     * like selectone
+     * @param  string  $sql_query
+     * @param  boolean $is_query_show
+     * @return [type]
+     */
+    public function queryOne($sql_query,$is_query_show = false) {
+        $sql_query = preg_replace("/limit\s+\d+(,\s+\d+)?$/", "", $sql_query);
+        $sql_query = $sql_query . " limit 1";
+        $result = $this->query($sql_query);
+        if($result) {
+            $return = $result[0];
+            return $return;
+        } else {
+            return null;
+        }
+    }
+
+
+    /**
      * 直接執行 sql 句
      * @param  string  $sql_query
      * @param  boolean $is_query_show
