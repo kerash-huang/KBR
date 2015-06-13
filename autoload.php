@@ -1,14 +1,14 @@
 <?php
-function autoload( $class ) {
+function ezapi_autoload( $class ) {
     $basic_folder = __DIR__;
     $class = ltrim($class, '\\');
     $class = str_replace("\\", DIRECTORY_SEPARATOR, $class);
-
-    if(file_exists($basic_folder.DIRECTORY_SEPARATOR.$class.".php")){
-        require_once $basic_folder.DIRECTORY_SEPARATOR.$class.".php";
+    $EzFile = $basic_folder.DIRECTORY_SEPARATOR.$class.".php";
+    if(file_exists($EzFile)){
+        require_once $EzFile;
     } else {
-
+        echo "Fatal: file {$class} not found in system.";
     }
 }
 
-spl_autoload_register('autoload');
+spl_autoload_register('ezapi_autoload');
