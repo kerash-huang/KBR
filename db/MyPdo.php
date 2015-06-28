@@ -469,7 +469,7 @@ class MyPdo extends Database {
      * @param  boolean $is_query_show
      * @return [type]
      */
-    public function queryOne($sql_query,$is_query_show = false) {
+    public function queryone($sql_query,$is_query_show = false) {
         $sql_query = preg_replace("/limit\s+\d+(,\s+\d+)?$/", "", $sql_query);
         $sql_query = $sql_query . " limit 1";
         $result = $this->query($sql_query);

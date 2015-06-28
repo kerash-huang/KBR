@@ -53,12 +53,9 @@ class Router {
     public function find($method, $route) {
         // 檢查呼叫的 http method 是不是有定義
         if(isset($this->RoutePath[$method])) {
-
             // 檢查是否存在完全匹配定義的 route
             if(isset($this->RoutePath[$method][$route])) {
-
                 $RouteData = $this->RoutePath[$method][$route];
-
                 return $RouteData;
 
             } else {
@@ -67,7 +64,6 @@ class Router {
                 $request_route_len  = count($request_route_data);
 
                 uksort($this->RoutePath[$method], array($this, "sortroute"));
-
                 $routelist = $this->RoutePath[$method];
 
                 foreach($routelist as $def => $data) {
@@ -102,7 +98,6 @@ class Router {
                     if($next === true) {
                         continue;
                     }
-
                     foreach ($tmp_data_container as $name => $value) {
                         Common::SetParam($name, $value);
                     }

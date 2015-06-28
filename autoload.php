@@ -10,5 +10,4 @@ function ezapi_autoload( $class ) {
         echo "Fatal: file {$class} not found in system.";
     }
 }
-
 spl_autoload_register('ezapi_autoload');

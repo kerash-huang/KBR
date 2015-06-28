@@ -1,6 +1,6 @@
 <?php
 namespace ezapi;
 
-class Controller {
+class Controller extends Base {
 
 }
