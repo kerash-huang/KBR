@@ -57,7 +57,6 @@ class Router {
             if(isset($this->RoutePath[$method][$route])) {
                 $RouteData = $this->RoutePath[$method][$route];
                 return $RouteData;
-
             } else {
                 // 以分隔符號切割每個參數
                 $request_route_data = explode("/" , $route);
@@ -68,7 +67,6 @@ class Router {
 
                 foreach($routelist as $def => $data) {
                     $route_param_data = explode("/", $def);
-
                     $route_param_data = array_values(array_filter($route_param_data, 'strlen'));
 
                     if( count($route_param_data) < $request_route_len )
@@ -78,7 +76,6 @@ class Router {
                         break;
 
                     $tmp_data_container = array();
-
                     $next = false;
 
                     foreach($route_param_data as $pos => $key) {
@@ -93,7 +90,6 @@ class Router {
                             }
                         }
                     }
-
                     // jump to next route condition
                     if($next === true) {
                         continue;
@@ -118,7 +114,7 @@ class Router {
      * @return [type]
      */
     private function sortroute(&$a, &$b) {
-        if($a>$b) {
+        if(strlen($a)>strlen($b)) {
             return 1;
         } else {
             return 0;
