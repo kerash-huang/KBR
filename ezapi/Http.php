@@ -46,7 +46,7 @@ class Http {
         curl_setopt($curl,CURLOPT_HTTPHEADER,array("Content-type: text/html;charset=\"utf-8\""));
         curl_setopt($curl,CURLOPT_CONNECTTIMEOUT,40);
         curl_setopt($curl,CURLOPT_TIMEOUT,40);
-        // curl_setopt($curl,CURLOPT_FOLLOWLOCATION,true);
+        curl_setopt($curl,CURLOPT_FOLLOWLOCATION,true);
         curl_setopt($curl,CURLOPT_RETURNTRANSFER,true);
 
         if(substr($TargetUrl,0,5)=="https"){
