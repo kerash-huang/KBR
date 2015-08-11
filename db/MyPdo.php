@@ -57,7 +57,8 @@ class MyPdo extends Database {
         if($this->handle) {
             return true;
         }
-        $this->handle = new \PDO($dsn, $user, $password,
+        $dsn = "mysql:dbname={$this->pub_database};host={$this->pub_host}";
+        $this->handle = new \PDO($dsn, $this->pub_user, $this->pub_password,
             array(\PDO::MYSQL_ATTR_INIT_COMMAND => "SET NAMES {$this->pdo_default_char}")
         );
         $this->handle->setAttribute(\PDO::ATTR_EMULATE_PREPARES, false); // send statement twice for preventing sql injection
@@ -122,7 +123,7 @@ class MyPdo extends Database {
      */
     public function select($column, $table, $where_condition = "", $order = "", $limit = "" , $is_query_show = false){
         if(!$this->handle) {
-            $this->conntect();
+            $this->connect();
         }
         if( !is_array($column) and trim($column) == "" ) {
             return false;
@@ -231,7 +232,7 @@ class MyPdo extends Database {
      */
     public function insert($table, $column, $data = "", $extend ="" , $is_query_show = false) {
         if(!$this->handle) {
-            $this->conntect();
+            $this->connect();
         }
         if(is_array($table) or empty($table)) {
             return false;
@@ -361,7 +362,7 @@ class MyPdo extends Database {
      */
     public function update($table, $data, $where_condition, $is_query_show = false){
         if(!$this->handle) {
-            $this->conntect();
+            $this->connect();
         }
         if(empty($table) or empty($data)) {
             return false;
@@ -419,7 +420,7 @@ class MyPdo extends Database {
      */
     public function delete($table, $where_condition, $order = "", $limit = "", $is_query_show = false){
         if(!$this->handle) {
-            $this->conntect();
+            $this->connect();
         }
         if( empty($table) ) {
             return false;
@@ -514,7 +515,7 @@ class MyPdo extends Database {
      */
     public function query($sql_query, $is_query_show = false) {
         if(!$this->handle) {
-            $this->conntect();
+            $this->connect();
         }
         try{
             $sql_query = trim($sql_query);
