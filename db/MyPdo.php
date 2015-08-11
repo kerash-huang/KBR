@@ -3,7 +3,6 @@ namespace db;
 class MyPdo extends Database {
     // PDO Object
     public  $handle;
-
     /**
      * 紀錄曾經建立連線過（作為 disconnect 後再重連時的判斷）
      */
@@ -55,8 +54,8 @@ class MyPdo extends Database {
     }
 
     function ReConnect() {
-        if(!$this->haveConnected) {
-            return false;
+        if($this->handle) {
+            return true;
         }
         $this->handle = new \PDO($dsn, $user, $password,
             array(\PDO::MYSQL_ATTR_INIT_COMMAND => "SET NAMES {$this->pdo_default_char}")
@@ -122,6 +121,9 @@ class MyPdo extends Database {
      * @return mixed
      */
     public function select($column, $table, $where_condition = "", $order = "", $limit = "" , $is_query_show = false){
+        if(!$this->handle) {
+            $this->conntect();
+        }
         if( !is_array($column) and trim($column) == "" ) {
             return false;
         } else if(is_array($column) and count($column)==0) {
@@ -228,6 +230,9 @@ class MyPdo extends Database {
      * @return boolean
      */
     public function insert($table, $column, $data = "", $extend ="" , $is_query_show = false) {
+        if(!$this->handle) {
+            $this->conntect();
+        }
         if(is_array($table) or empty($table)) {
             return false;
         }
@@ -355,6 +360,9 @@ class MyPdo extends Database {
      * @return boolean
      */
     public function update($table, $data, $where_condition, $is_query_show = false){
+        if(!$this->handle) {
+            $this->conntect();
+        }
         if(empty($table) or empty($data)) {
             return false;
         }
@@ -410,6 +418,9 @@ class MyPdo extends Database {
      * @return boolean
      */
     public function delete($table, $where_condition, $order = "", $limit = "", $is_query_show = false){
+        if(!$this->handle) {
+            $this->conntect();
+        }
         if( empty($table) ) {
             return false;
         }
@@ -452,6 +463,19 @@ class MyPdo extends Database {
         }
     }
 
+
+    /**
+     * 自訂 SQL 以 binding param 的方式執行
+     * @param  string $sql
+     * @param  array $param
+     * @return mixed
+     */
+    public function binding_execute($sql, $param) {
+        
+
+
+    }
+
     /**
      * query 的 alias
      * @param  string  $sql_query
@@ -489,6 +513,9 @@ class MyPdo extends Database {
      * @return mixed
      */
     public function query($sql_query, $is_query_show = false) {
+        if(!$this->handle) {
+            $this->conntect();
+        }
         try{
             $sql_query = trim($sql_query);
             if($is_query_show) $this->ShowQuery($sql_query);
