@@ -164,10 +164,8 @@ class MyPdo extends Database {
                     $stmt->execute();
                 }
                 $result = $stmt->fetchAll($this->pdo_fetch_type);
-
                 if($this->calc_row) {
                     $row_stmt = $this->handle->prepare("SELECT FOUND_ROWS() AS CALCROW");
-
                     if($row_stmt) {
                         $exec = $row_stmt->execute();
                         $row_result = $row_stmt->fetchAll(\PDO::FETCH_NUM);
@@ -177,6 +175,7 @@ class MyPdo extends Database {
                         $this->result_row_num = 0;
                     }
                 }
+                $stmt = null;
             } else {
                 return null;
             }
@@ -330,15 +329,14 @@ class MyPdo extends Database {
         try {
             $stmt = $this->handle->prepare($query_string);
             if($stmt) {
-
                 if($is_bind_param) {
                     $stmt->execute($bind_param_array);
                 } else {
                     $stmt->execute();
                 }
-
                 if($stmt->rowCount()>0) {
                     $AId = $this->handle->lastInsertId();
+                    $stmt = null;
                     return $AId;
                 } else {
                     return false;
@@ -402,6 +400,7 @@ class MyPdo extends Database {
             $stmt = $this->handle->prepare($query_string);
             if($stmt) {
                 $success = $stmt->execute($is_bind_param?$bind_param_array:null);
+                $stmt = null;
                 return $success;
             } else {
                 return false;
@@ -455,6 +454,7 @@ class MyPdo extends Database {
                 } else {
                     $success = $stmt->execute();
                 }
+                $stmt = null;
                 return $success;
             } else {
                 return false;
@@ -526,18 +526,22 @@ class MyPdo extends Database {
                 if($ExecuteReturn) {
                     if(preg_match("/^(select|show)/i",$sql_query))  {
                         $Result = $stmt->fetchAll( $this->pdo_fetch_type );
+                        $stmt = null;
                         if($Result) {
                             return $Result;
                         } else {
                             return false;
                         }
                     } else if(preg_match("/^insert/i",$sql_query)) {
+                        $stmt = null;
                         $Result = $this->handle->lastInsertId();
                         return $Result;
                     } else {
+                        $stmt = null;
                         return true;
                     }
                 } else {
+                    $stmt = null;
                     return false;
                 }
            } else {
