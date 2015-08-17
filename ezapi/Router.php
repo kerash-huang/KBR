@@ -2,13 +2,12 @@
 namespace ezapi;
 
 class Router {
-
     public $RoutePath = array();
 
     /**
      * 儲存以 GET 方法呼叫的 Route
-     * @param  [type] $route
-     * @param  [type] $param
+     * @param  string $route
+     * @param  array  $param
      * @return [type]
      */
     public function get($route, $param = null) {
@@ -21,8 +20,8 @@ class Router {
 
     /**
      * 儲存以 POST 方法呼叫的 Route
-     * @param  [type] $route
-     * @param  [type] $param
+     * @param  string $route
+     * @param  array  $param
      * @return [type]
      */
     public function post($route, $param = null) {
@@ -32,8 +31,6 @@ class Router {
         }
         $this->RoutePath["POST"][$route] = $default_param;
     }
-
-
 
     /**
      * 比對 Route 匹配結果
@@ -109,8 +106,8 @@ class Router {
 
     /**
      * 排序比較用
-     * @param  [type] &$a
-     * @param  [type] &$b
+     * @param  string &$a
+     * @param  string &$b
      * @return [type]
      */
     private function sortroute(&$a, &$b) {

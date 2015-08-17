@@ -4,8 +4,8 @@ namespace db;
  * @descript      Database Conenction
  * @author        Kerash <kerash@livemail.com>
  * @start         2015/04/26
- * @last-modify   2015/06/04
- * @version       v1.2.9
+ * @last-modify   2015/08/11
+ * @version       v1.3.0
  *
  * $DBSource definition struct
  * array(

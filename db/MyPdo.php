@@ -3,7 +3,6 @@ namespace db;
 class MyPdo extends Database {
     // PDO Object
     public  $handle;
-
     /**
      * 紀錄曾經建立連線過（作為 disconnect 後再重連時的判斷）
      */
@@ -55,10 +54,11 @@ class MyPdo extends Database {
     }
 
     function ReConnect() {
-        if(!$this->haveConnected) {
-            return false;
+        if($this->handle) {
+            return true;
         }
-        $this->handle = new \PDO($dsn, $user, $password,
+        $dsn = "mysql:dbname={$this->pub_database};host={$this->pub_host}";
+        $this->handle = new \PDO($dsn, $this->pub_user, $this->pub_password,
             array(\PDO::MYSQL_ATTR_INIT_COMMAND => "SET NAMES {$this->pdo_default_char}")
         );
         $this->handle->setAttribute(\PDO::ATTR_EMULATE_PREPARES, false); // send statement twice for preventing sql injection
@@ -122,6 +122,9 @@ class MyPdo extends Database {
      * @return mixed
      */
     public function select($column, $table, $where_condition = "", $order = "", $limit = "" , $is_query_show = false){
+        if(!$this->handle) {
+            $this->connect();
+        }
         if( !is_array($column) and trim($column) == "" ) {
             return false;
         } else if(is_array($column) and count($column)==0) {
@@ -161,10 +164,8 @@ class MyPdo extends Database {
                     $stmt->execute();
                 }
                 $result = $stmt->fetchAll($this->pdo_fetch_type);
-
                 if($this->calc_row) {
                     $row_stmt = $this->handle->prepare("SELECT FOUND_ROWS() AS CALCROW");
-
                     if($row_stmt) {
                         $exec = $row_stmt->execute();
                         $row_result = $row_stmt->fetchAll(\PDO::FETCH_NUM);
@@ -174,6 +175,7 @@ class MyPdo extends Database {
                         $this->result_row_num = 0;
                     }
                 }
+                $stmt = null;
             } else {
                 return null;
             }
@@ -228,6 +230,9 @@ class MyPdo extends Database {
      * @return boolean
      */
     public function insert($table, $column, $data = "", $extend ="" , $is_query_show = false) {
+        if(!$this->handle) {
+            $this->connect();
+        }
         if(is_array($table) or empty($table)) {
             return false;
         }
@@ -324,15 +329,14 @@ class MyPdo extends Database {
         try {
             $stmt = $this->handle->prepare($query_string);
             if($stmt) {
-
                 if($is_bind_param) {
                     $stmt->execute($bind_param_array);
                 } else {
                     $stmt->execute();
                 }
-
                 if($stmt->rowCount()>0) {
                     $AId = $this->handle->lastInsertId();
+                    $stmt = null;
                     return $AId;
                 } else {
                     return false;
@@ -355,6 +359,9 @@ class MyPdo extends Database {
      * @return boolean
      */
     public function update($table, $data, $where_condition, $is_query_show = false){
+        if(!$this->handle) {
+            $this->connect();
+        }
         if(empty($table) or empty($data)) {
             return false;
         }
@@ -393,6 +400,7 @@ class MyPdo extends Database {
             $stmt = $this->handle->prepare($query_string);
             if($stmt) {
                 $success = $stmt->execute($is_bind_param?$bind_param_array:null);
+                $stmt = null;
                 return $success;
             } else {
                 return false;
@@ -410,6 +418,9 @@ class MyPdo extends Database {
      * @return boolean
      */
     public function delete($table, $where_condition, $order = "", $limit = "", $is_query_show = false){
+        if(!$this->handle) {
+            $this->connect();
+        }
         if( empty($table) ) {
             return false;
         }
@@ -443,6 +454,7 @@ class MyPdo extends Database {
                 } else {
                     $success = $stmt->execute();
                 }
+                $stmt = null;
                 return $success;
             } else {
                 return false;
@@ -450,6 +462,19 @@ class MyPdo extends Database {
         } catch(\PDOException $e) {
             return false;
         }
+    }
+
+
+    /**
+     * 自訂 SQL 以 binding param 的方式執行
+     * @param  string $sql
+     * @param  array $param
+     * @return mixed
+     */
+    public function binding_execute($sql, $param) {
+        
+
+
     }
 
     /**
@@ -489,6 +514,9 @@ class MyPdo extends Database {
      * @return mixed
      */
     public function query($sql_query, $is_query_show = false) {
+        if(!$this->handle) {
+            $this->connect();
+        }
         try{
             $sql_query = trim($sql_query);
             if($is_query_show) $this->ShowQuery($sql_query);
@@ -498,18 +526,22 @@ class MyPdo extends Database {
                 if($ExecuteReturn) {
                     if(preg_match("/^(select|show)/i",$sql_query))  {
                         $Result = $stmt->fetchAll( $this->pdo_fetch_type );
+                        $stmt = null;
                         if($Result) {
                             return $Result;
                         } else {
                             return false;
                         }
                     } else if(preg_match("/^insert/i",$sql_query)) {
+                        $stmt = null;
                         $Result = $this->handle->lastInsertId();
                         return $Result;
                     } else {
+                        $stmt = null;
                         return true;
                     }
                 } else {
+                    $stmt = null;
                     return false;
                 }
            } else {
