@@ -40,6 +40,8 @@ class Base {
     public $APIControllerPath = null;
     public $APIViewPath = null;
 
+    public $BaseUrl = "";
+
 
     function __construct($config) {
         if($this->EnvDebug) {
@@ -51,6 +53,8 @@ class Base {
         $this->APIControllerPath = $this->APIBasePath."controller/";
         $this->APIViewPath       = $this->APIBasePath."view/";
         
+        $this->BaseUrl = "http://".$_SERVER["HTTP_HOST"]."/".dirname($_SERVER["SCRIPT_NAME"])."/";
+
         $this->Config        = $config;
         $this->ServerParam   = filter_input_array(INPUT_SERVER);
         $this->RequestMethod = strtoupper($_SERVER["REQUEST_METHOD"]);

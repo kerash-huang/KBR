@@ -17,15 +17,48 @@ $db_data = array (
     "read" => array ("dbtype"=>"mysql", "host"=>"127.0.0.1", "dbname"=>"test", "user"=>"dbtest", "password"=>"test1234")
 );
 
-db\Database::loadConnection($db_data);
-db\Database::setErrorLevel(ERROR_FILE);
+class ObjDB {
+  public $db = null;
+  public $db2 = null;
+  function __construct() {
+    global $db_data;
+    db\Database::loadConnection($db_data);
+    db\Database::setErrorLevel(ERROR_FILE);
+    $this->db = db\Database::getInstance()->getConnection("read");
+    $this->db2 = db\Database::getInstance()->getConnection("read");
+  }
+}
 
-$testdb = db\Database::getInstance()->getConnection("read");
+$ObjDB = new ObjDB;
+$db = $ObjDB->db;
+$db->Disconnect();
+sleep(10);
+var_dump($testdb);
+die();
+
+
 if(!$testdb) {
   echo "NoLink";
   die();
 }
+$testdb2 = db\Database::getInstance()->getConnection("read");
+$testdb3 = db\Database::getInstance()->getConnection("read");
+echo "<pre>";
+// $er1=db\Database::getInstance()->getConnection("read")->select("*","mytable");
 
+// $er2=db\Database::getInstance()->getConnection("read")->select("*","mytable");
+
+$tc=db\Database::getInstance()->getConnection("read")->do_query("show status like 'Threads_connected';");
+
+var_dump($tc);
+
+
+
+
+
+
+
+die();
 // $testdb->query("INSERT INTO mytable (id, name) VALUES (null, 'Hello') ");
 
 

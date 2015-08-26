@@ -29,7 +29,6 @@ class Api extends Base {
      * @param string $action
      */
     public function DefaultRoute($controller, $action) {
-
         $this->DefaultController = $controller;
         $this->DefaultAction     = $action;
     }
@@ -69,7 +68,7 @@ class Api extends Base {
         if(file_exists( $this->APIControllerPath . $Controller."Controller.php" ) ) {
             require_once ($this->APIControllerPath . $Controller."Controller.php");
             if( method_exists( __NAMESPACE__."\\Controller\\{$Controller}", $Action) ) {
-                call_user_func( array( __NAMESPACE__."\\Controller\\$Controller" , $Action) );
+                call_user_func( array( __NAMESPACE__."\\Controller\\{$Controller}" , $Action) );
             } else {
                 $this->error(500);
             }
