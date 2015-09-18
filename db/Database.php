@@ -20,6 +20,21 @@ define("ERROR_FILE", 0x105, true);
 define("ERROR_EXCEPTION", 0x107, true);
 define("ERROR_ECHO", 0x109, true);
 
+function DatabaseAutoload($className) {
+
+    if(strpos($className, 'db\\')!==false) {
+        $className = str_replace('db\\', "", $className);
+    }
+
+    if (file_exists(__DIR__.DIRECTORY_SEPARATOR . $className. '.php')) {
+        require_once __DIR__.DIRECTORY_SEPARATOR . $className . '.php';
+        return true;
+    }
+    return false;
+}
+
+spl_autoload_register("db\\DatabaseAutoload");
+
 class Database extends DBException {
     private static $DBSource = null;
     private static $ActiveConnection = array();
@@ -35,12 +50,26 @@ class Database extends DBException {
 
     }
 
+    public static function addNewConnection($sourcekey , $host , $user, $password, $dbname, $type = "mysql") {
+        $new_db_info  = array(
+            "host"=> $host, "dbname"=>$dbname, "user"=>$user, "password"=>$password, "dbtype"=>$type
+        );
+
+        if ( self::$DBSource === null) {
+            self::$DBSource = array($sourcekey => $new_db_info);
+        } else {
+            self::$DBSource[$sourcekey] = $new_db_info;
+        }
+
+    }
+
     public static function loadConnection( $source ) {
         self::$DBSource = $source;
         register_shutdown_function(array("db\Database","destruct"));
     }
 
     public static function getInstance() {
+
         if(self::$instance == null) {
             try {
                 self::$instance = new Database;
@@ -77,6 +106,7 @@ class Database extends DBException {
         if(!isset(self::$DBSource)) {
             throw new \Exception("Define the database connect information first. (use Database::loadConnection([Array])");
         }
+
         $SourceDefine = self::$DBSource[$source];
         if(!$SourceDefine) {
             return null;
@@ -97,10 +127,13 @@ class Database extends DBException {
     public function disconnectDb($source) {
         $source = (array)($source);
         foreach($source as $ln) {
-            if(!isset(self::$DBSource[$ln])) {
+            $SourceDefine = self::$DBSource[$ln];
+            $AcKey = str_replace(".","_", $SourceDefine["host"]).$SourceDefine["user"];
+
+            if(!isset(self::$ActiveConnection[$AcKey])) {
                 return true;
             } else {
-                self::$DBSource[$ln]->Disconnect();
+                self::$ActiveConnection[$AcKey]->Disconnect();
             }
         }
     }
