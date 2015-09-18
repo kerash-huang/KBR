@@ -5,7 +5,7 @@ class Base {
 
     private $Config;
 
-    private $EnvDebug = true;
+    private $EnvDebug = false;
     /**
      * 取得呼叫的方法
      * 由 AcceptMethod 可以限制方法是否可用
@@ -68,6 +68,20 @@ class Base {
         }
     }
 
+    /**
+     * 開啟 Debug 
+     */
+    function OpenDebug() {
+        $this->EnvDebug = true;
+    }
+
+    /**
+     * 顯示 PHP Debug 訊息
+     */
+    function ShowPHPDebugMessage() {
+        error_reporting(E_ALL);
+        ini_set("display_errors",1);
+    }
     /**
      * HTTP 警告訊息
      * @param  integer $status_code 
